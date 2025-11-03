@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Security Scanner - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='advanced_styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-shield-alt"></i>
+                <span>Security Scanner Pro</span>
+            </div>
+            <div class="nav-menu">
+                <span class="nav-user">Welcome, {{ user }}</span>
+                <button class="nav-btn" onclick="toggleDarkMode()">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+                <button class="nav-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-menu">
+                <div class="menu-item active" onclick="showTab('scanner')">
+                    <i class="fas fa-search"></i>
+                    <span>Scanner</span>
+                </div>
+                <div class="menu-item" onclick="showTab('history')">
+                    <i class="fas fa-history"></i>
+                    <span>History</span>
+                </div>
+                <div class="menu-item" onclick="showTab('reports')">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reports</span>
+                </div>
+                <div class="menu-item" onclick="showTab('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Scanner Tab -->
+            <div id="scanner-tab" class="tab-content active">
+                <div class="scanner-header">
+                    <h1><i class="fas fa-shield-virus"></i> Advanced Security Scanner</h1>
+                    <p>Comprehensive vulnerability assessment with real-time scanning</p>
+                </div>
+
+                <div class="scanner-form">
+                    <form id="advancedScanForm">
+                        <div class="input-group">
+                            <div class="url-input-container">
+                                <i class="fas fa-globe input-icon"></i>
+                                <input type="url" id="urlInput" placeholder="Enter website URL (e.g., https://example.com)" required>
+                            </div>
+                            
+                            <div class="scan-options">
+                                <label class="option-label">
+                                    <input type="checkbox" id="deepScan" checked>
+                                    <span class="checkmark"></span>
+                                    Deep Scan
+                                </label>
+                                <label class="option-label">
+                                    <input type="checkbox" id="sslCheck" checked>
+                                    <span class="checkmark"></span>
+                                    SSL Check
+                                </label>
+                                <label class="option-label">
+                                    <input type="checkbox" id="xssCheck" checked>
+                                    <span class="checkmark"></span>
+                                    XSS Detection
+                                </label>
+                            </div>
+                            
+                            <button type="submit" id="scanBtn" class="scan-button">
+                                <span class="btn-text">
+                                    <i class="fas fa-search"></i>
+                                    Start Advanced Scan
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Scanning...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Progress Section -->
+                <div id="scanProgress" class="progress-section" style="display: none;">
+                    <div class="progress-header">
+                        <h3 id="progressTitle">Initializing Scan...</h3>
+                        <div class="progress-stats">
+                            <div class="stat">
+                                <span class="stat-label">Progress</span>
+                                <span class="stat-value" id="progressPercent">0%</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Forms Found</span>
+                                <span class="stat-value" id="formsFound">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Vulnerabilities</span>
+                                <span class="stat-value" id="vulnCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-percentage" id="progressText">0%</div>
+                    </div>
+                    
+                    <div class="scan-steps">
+                        <div class="step" id="step-ssl">
+                            <i class="fas fa-certificate"></i>
+                            <span>SSL Certificate Check</span>
+                        </div>
+                        <div class="step" id="step-forms">
+                            <i class="fas fa-list"></i>
+                            <span>Form Discovery</span>
+                        </div>
+                        <div class="step" id="step-vulnerabilities">
+                            <i class="fas fa-bug"></i>
+                            <span>Vulnerability Testing</span>
+                        </div>
+                        <div class="step" id="step-report">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Report Generation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div id="scanResults" class="results-section" style="display: none;">
+                    <div class="results-header">
+                        <h3><i class="fas fa-clipboard-list"></i> Scan Results</h3>
+                        <div class="results-actions">
+                            <button class="action-btn" onclick="exportReport('json')">
+                                <i class="fas fa-download"></i> JSON
+                            </button>
+                            <button class="action-btn" onclick="exportReport('csv')">
+                                <i class="fas fa-file-csv"></i> CSV
+                            </button>
+                            <button class="action-btn" onclick="exportReport('pdf')">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="results-summary">
+                        <div class="summary-card safe">
+                            <div class="card-icon">
+                                <i class="fas fa-shield-check"></i>
+                            </div>
+                            <div class="card-content">
+                                <h4 id="riskLevel">Low Risk</h4>
+                                <p id="summaryText">No critical vulnerabilities found</p>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-stats">
+                            <div class="stat-card">
+                                <i class="fas fa-bug"></i>
+                                <div>
+                                    <span class="stat-number" id="totalVulns">0</span>
+                                    <span class="stat-label">Vulnerabilities</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-clock"></i>
+                                <div>
+                                    <span class="stat-number" id="scanDuration">0s</span>
+                                    <span class="stat-label">Duration</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-list"></i>
+                                <div>
+                                    <span class="stat-number" id="formsScanned">0</span>
+                                    <span class="stat-label">Forms Tested</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="vulnerabilityList" class="vulnerability-list">
+                        <!-- Vulnerabilities will be populated here -->
+                    </div>
+                    
+                    <div class="detailed-report">
+                        <button class="expand-btn" onclick="toggleDetailedReport()">
+                            <i class="fas fa-chevron-down"></i>
+                            View Detailed Technical Report
+                        </button>
+                        <div id="detailedReport" class="detailed-content" style="display: none;">
+                            <!-- Detailed report content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2><i class="fas fa-history"></i> Scan History</h2>
+                    <button class="refresh-btn" onclick="loadScanHistory()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+                
+                <div id="historyList" class="history-list">
+                    <!-- History items will be populated here -->
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2><i class="fas fa-chart-line"></i> Security Reports</h2>
+                </div>
+                
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h4>Risk Trend Analysis</h4>
+                        <canvas id="riskChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="report-card">
+                        <h4>Vulnerability Types</h4>
+                        <canvas id="vulnTypesChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2><i class="fas fa-cog"></i> Settings</h2>
+                </div>
+                
+                <div class="settings-groups">
+                    <div class="setting-group">
+                        <h4>Scan Preferences</h4>
+                        <div class="setting-item">
+                            <label>Default Scan Depth</label>
+                            <select id="defaultScanDepth">
+                                <option value="light">Light Scan</option>
+                                <option value="normal" selected>Normal Scan</option>
+                                <option value="deep">Deep Scan</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>Email Notifications</label>
+                            <input type="checkbox" id="emailNotifications" checked>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <h4>API Access</h4>
+                        <div class="setting-item">
+                            <label>API Key</label>
+                            <div class="api-key-container">
+                                <input type="text" id="apiKey" readonly placeholder="Click generate to create API key">
+                                <button onclick="generateApiKey()">Generate</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='advanced_app.js') }}"></script>
+</body>
+</html>
